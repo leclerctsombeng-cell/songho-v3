@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Songo – Vs IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ── Config screen ─────────────────────────────────── */
+    #screen-config {
+      background: var(--bg-deep);
+      align-items: center; justify-content: center;
+      padding: 2rem 1.5rem; min-height: 100vh;
+    }
+    .config-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2.5rem 2rem;
+      max-width: 460px; width: 100%; text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .config-title { font-family:'Cinzel',serif; font-size:1.8rem; color:var(--accent-light); margin-bottom:.4rem; }
+    .config-sub   { font-size:.85rem; color:var(--text-muted); margin-bottom:2rem; line-height:1.6; }
+    .config-group { text-align:left; margin-bottom:1.5rem; }
+    .config-label { font-size:.75rem; color:var(--accent-gold); text-transform:uppercase;
+                    letter-spacing:.08em; margin-bottom:.6rem; display:block; }
+    .config-options { display:flex; gap:.5rem; flex-wrap:wrap; }
+    .config-btn {
+      flex:1; min-width:80px; padding:.6rem .5rem; border-radius:var(--radius-sm);
+      border:1px solid var(--border); background:var(--bg-dark); color:var(--text-muted);
+      font-size:.85rem; font-family:'Inter',sans-serif; cursor:pointer; transition:var(--transition);
+    }
+    .config-btn.active { background:var(--accent-gold); color:var(--bg-deep); border-color:var(--accent-gold); font-weight:700; }
+    .config-btn:hover:not(.active) { border-color:var(--accent-gold); color:var(--accent-gold); }
+    .btn-start-game {
+      width:100%; padding:1rem; background:var(--accent-gold); color:var(--bg-deep);
+      border:none; border-radius:var(--radius-sm); font-size:1rem; font-weight:700;
+      font-family:'Cinzel',serif; cursor:pointer; transition:var(--transition); letter-spacing:.05em;
+    }
+    .btn-start-game:hover { background:var(--accent-light); transform:translateY(-2px); }
+    .btn-back-cfg {
+      background:none; border:none; color:var(--text-dim); font-size:.85rem;
+      cursor:pointer; margin-top:1rem; font-family:'Inter',sans-serif; transition:var(--transition);
+    }
+    .btn-back-cfg:hover { color:var(--accent-gold); }
+
+    /* ── Header étendu ─────────────────────────────────── */
+    .game-header-ext {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.75rem 1.25rem; border-bottom:1px solid var(--border);
+      background:rgba(10,11,15,0.85); backdrop-filter:blur(10px);
+      position:sticky; top:0; z-index:100; flex-wrap:wrap; gap:.5rem;
+    }
+    .header-left, .header-right { display:flex; align-items:center; gap:.5rem; }
+
+    /* ── Minuteur ──────────────────────────────────────── */
+    .timer-widget {
+      display:flex; align-items:center; gap:.4rem; background:var(--bg-card);
+      border:1px solid var(--border); border-radius:var(--radius-sm);
+      padding:.35rem .75rem; font-family:'Cinzel',serif; font-size:1.1rem;
+      font-weight:700; color:var(--accent-gold); min-width:70px;
+      justify-content:center; transition:var(--transition);
+    }
+    .timer-widget.warning { border-color:#e8b45a; color:#e8b45a; background:rgba(232,180,90,.1); }
+    .timer-widget.danger  {
+      border-color:var(--accent-red); color:var(--accent-red);
+      background:rgba(224,92,92,.15);
+      animation: tPulse .5s ease-in-out infinite;
+    }
+    @keyframes tPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+    /* ── Round badge ───────────────────────────────────── */
+    .round-badge {
+      font-size:.7rem; color:var(--text-dim); background:var(--bg-dark);
+      border:1px solid var(--border); border-radius:100px; padding:.15rem .6rem;
+    }
+
+    /* ── Match score ───────────────────────────────────── */
+    .match-info { display:flex; align-items:center; gap:.5rem; }
+    .match-label { color:var(--text-dim); font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; }
+    .match-score-badge {
+      font-family:'Cinzel',serif; font-size:1rem; font-weight:700; color:var(--accent-light);
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:var(--radius-sm); padding:.2rem .6rem;
+    }
+    .win-stars { display:flex; gap:3px; justify-content:center; margin-top:4px; }
+    .win-star  { font-size:.9rem; opacity:.2; transition:opacity .3s,transform .3s; }
+    .win-star.filled { opacity:1; transform:scale(1.15); }
+
+    /* ── Bouton historique ─────────────────────────────── */
+    .btn-history {
+      background:var(--bg-card); border:1px solid var(--border); color:var(--text-primary);
+      padding:.35rem .65rem; border-radius:var(--radius-sm); cursor:pointer;
+      font-size:.85rem; transition:var(--transition); position:relative;
+    }
+    .btn-history:hover { border-color:var(--accent-gold); color:var(--accent-gold); }
+    .history-count {
+      position:absolute; top:-5px; right:-5px; background:var(--accent-gold);
+      color:var(--bg-deep); border-radius:50%; width:16px; height:16px;
+      font-size:.6rem; font-weight:700; display:flex; align-items:center; justify-content:center;
+    }
+    .history-count.hidden { display:none; }
+
+    /* ── Panneau historique ────────────────────────────── */
+    #history-overlay { position:fixed; inset:0; z-index:399; background:rgba(0,0,0,.4); display:none; }
+    #history-overlay.visible { display:block; }
+    #history-panel {
+      position:fixed; top:0; right:0; width:280px; height:100vh;
+      background:var(--bg-card); border-left:1px solid var(--border);
+      z-index:400; display:flex; flex-direction:column;
+      transform:translateX(100%); transition:transform .35s cubic-bezier(.4,0,.2,1);
+      box-shadow:-8px 0 30px rgba(0,0,0,.5);
+    }
+    #history-panel.open { transform:translateX(0); }
+    .history-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem 1.25rem; border-bottom:1px solid var(--border);
+    }
+    .history-title { font-family:'Cinzel',serif; font-size:1rem; color:var(--accent-light); }
+    .btn-close-history { background:none; border:none; color:var(--text-muted); font-size:1.2rem; cursor:pointer; }
+    .btn-close-history:hover { color:var(--accent-gold); }
+    .history-list { flex:1; overflow-y:auto; padding:.75rem 1rem; display:flex; flex-direction:column; gap:.4rem; }
+    .history-list::-webkit-scrollbar { width:4px; }
+    .history-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+    .history-item {
+      display:flex; align-items:flex-start; gap:.6rem; padding:.5rem .6rem;
+      border-radius:var(--radius-sm); border:1px solid transparent; font-size:.8rem; color:var(--text-muted);
+    }
+    .history-item.north { border-color:rgba(79,168,213,.2); }
+    .history-item.south { border-color:rgba(201,150,62,.2); }
+    .history-num    { font-size:.65rem; color:var(--text-dim); min-width:20px; padding-top:1px; }
+    .history-player { font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; min-width:42px; }
+    .history-item.north .history-player { color:var(--accent-blue); }
+    .history-item.south .history-player { color:var(--accent-gold); }
+    .history-detail { flex:1; line-height:1.4; }
+    .history-capture { color:var(--accent-green); font-size:.72rem; }
+    .history-timeout { color:var(--accent-red);   font-size:.72rem; }
+    .history-empty   { text-align:center; color:var(--text-dim); font-size:.8rem; padding:2rem 0; }
+
+    /* ── Modal fin de manche ───────────────────────────── */
+    #modal-round { position:fixed; inset:0; z-index:550; display:flex; align-items:center; justify-content:center; }
+    #modal-round.hidden { display:none; }
+    .round-overlay { position:absolute; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(6px); }
+    .round-box {
+      position:relative; z-index:1; background:var(--bg-card); border:1px solid var(--border);
+      border-radius:24px; padding:2rem 1.75rem; max-width:360px; width:90%; text-align:center;
+      box-shadow:0 25px 80px rgba(0,0,0,.7); animation:modalIn .4s cubic-bezier(.34,1.56,.64,1);
+    }
+    .round-icon  { font-size:2.5rem; margin-bottom:.4rem; }
+    .round-title { font-family:'Cinzel',serif; font-size:1.4rem; color:var(--accent-light); margin-bottom:.3rem; }
+    .round-desc  { font-size:.85rem; color:var(--text-muted); margin-bottom:1rem; }
+    .round-match-score { display:flex; gap:1rem; justify-content:center; margin-bottom:1.25rem; }
+    .round-score-item { flex:1; background:var(--bg-dark); border-radius:var(--radius-sm); padding:.6rem .5rem; text-align:center; }
+    .round-score-item span   { font-size:.65rem; color:var(--text-dim); text-transform:uppercase; display:block; }
+    .round-score-item strong { font-family:'Cinzel',serif; font-size:1.3rem; color:var(--accent-gold); }
+    .round-stars { display:flex; gap:4px; justify-content:center; margin:.5rem 0; }
+    .round-star  { font-size:1.1rem; opacity:.2; }
+    .round-star.filled { opacity:1; }
+    .btn-next-round {
+      width:100%; padding:.85rem; background:var(--accent-gold); color:var(--bg-deep);
+      border:none; border-radius:var(--radius-sm); font-size:.95rem; font-weight:700;
+      font-family:'Cinzel',serif; cursor:pointer; transition:var(--transition);
+    }
+    .btn-next-round:hover { background:var(--accent-light); }
+
+    /* ── Flash banner ──────────────────────────────────── */
+    .flash-banner {
+      position:fixed; top:70px; left:50%; transform:translateX(-50%); z-index:300;
+      background:var(--accent-red); color:#fff; padding:.5rem 1.5rem;
+      border-radius:100px; font-weight:700; font-size:.9rem; pointer-events:none;
+      animation:bannerIn .3s ease, bannerOut .4s ease 1.5s forwards;
+    }
+    @keyframes bannerIn  { from{opacity:0;top:50px} to{opacity:1;top:70px} }
+    @keyframes bannerOut { from{opacity:1} to{opacity:0} }
+  </style>
+</head>
+<body>
+
+  <!-- ══ ÉCRAN CONFIG ════════════════════════════════════════ -->
+  <div id="screen-config" class="screen active">
+    <div class="config-card">
+      <h2 class="config-title">🤖 Vs IA</h2>
+      <p class="config-sub">Configurez la partie avant de commencer.</p>
+
+      <div class="config-group">
+        <span class="config-label">🎯 Niveau de l'IA</span>
+        <div class="config-options">
+          <button class="config-btn" onclick="selCfgLevel('easy',this)">😊 Facile</button>
+          <button class="config-btn active" onclick="selCfgLevel('medium',this)">🧠 Moyen</button>
+          <button class="config-btn" onclick="selCfgLevel('hard',this)">💀 Difficile</button>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <span class="config-label">⏱ Minuteur par tour</span>
+        <div class="config-options">
+          <button class="config-btn" onclick="selCfg('timer','0',this)">Aucun</button>
+          <button class="config-btn" onclick="selCfg('timer','30',this)">30 s</button>
+          <button class="config-btn active" onclick="selCfg('timer','60',this)">60 s</button>
+          <button class="config-btn" onclick="selCfg('timer','90',this)">90 s</button>
+        </div>
+      </div>
+
+      <div class="config-group">
+        <span class="config-label">🏆 Format de match</span>
+        <div class="config-options">
+          <button class="config-btn active" onclick="selCfg('match','1',this)">Partie unique</button>
+          <button class="config-btn" onclick="selCfg('match','3',this)">Best of 3</button>
+          <button class="config-btn" onclick="selCfg('match','5',this)">Best of 5</button>
+        </div>
+      </div>
+
+      <button class="btn-start-game" onclick="startGame('vsAI')">▶ Lancer la partie</button>
+      <button class="btn-back-cfg" onclick="window.location.href='index.html'">← Retour au menu</button>
+    </div>
+  </div>
+
+  <!-- ══ ÉCRAN JEU ════════════════════════════════════════════ -->
+  <div id="screen-game" class="screen">
+
+    <div class="game-header-ext">
+      <div class="header-left">
+        <button class="btn-home" onclick="window.location.href='index.html'" title="Accueil">🏠</button>
+        <span class="round-badge" id="round-badge">Partie unique</span>
+      </div>
+      <div class="timer-widget" id="timer-widget">
+        <span>⏱</span><span id="timer-display">—</span>
+      </div>
+      <div class="header-right">
+        <button class="btn-history" onclick="toggleHistory()" title="Historique">
+          📋<span class="history-count hidden" id="history-count">0</span>
+        </button>
+        <button class="btn-restart" onclick="restartGame()" title="Recommencer">🔄</button>
+      </div>
+    </div>
+
+    <div class="scoreboard">
+      <div class="score-card" id="score-north">
+        <div class="player-label" id="label-north">IA</div>
+        <div class="score-value"  id="score-north-val">0</div>
+        <div class="score-sub">graines</div>
+        <div class="win-stars" id="stars-north"></div>
+      </div>
+      <div class="score-center">
+        <div class="vs-badge">VS</div>
+        <div class="match-info" id="match-info" style="display:none;">
+          <span class="match-label">Match</span>
+          <span class="match-score-badge" id="match-score-badge">0 – 0</span>
+        </div>
+        <div class="total-label">70 graines</div>
+      </div>
+      <div class="score-card" id="score-south">
+        <div class="player-label" id="label-south">Vous</div>
+        <div class="score-value"  id="score-south-val">0</div>
+        <div class="score-sub">graines</div>
+        <div class="win-stars" id="stars-south"></div>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-message" id="status-message">Chargement…</div>
+      <div class="turn-indicator"  id="turn-indicator"></div>
+    </div>
+
+    <div class="board-wrapper">
+      <div class="board" id="board">
+        <div class="row row-north" id="row-north"></div>
+        <div class="board-divider">
+          <div class="divider-line"></div>
+          <div class="divider-logo">◈</div>
+          <div class="divider-line"></div>
+        </div>
+        <div class="row row-south" id="row-south"></div>
+      </div>
+    </div>
+
+    <div class="board-legend">
+      <div class="legend-item">🟤 Case normale</div>
+      <div class="legend-item">🟡 Sélectionnée</div>
+      <div class="legend-item">🟢 Capturée</div>
+    </div>
+  </div>
+
+  <!-- ══ PANNEAU HISTORIQUE ════════════════════════════════════ -->
+  <div id="history-overlay" onclick="closeHistory()"></div>
+  <div id="history-panel">
+    <div class="history-header">
+      <span class="history-title">📋 Historique des coups</span>
+      <button class="btn-close-history" onclick="closeHistory()">✕</button>
+    </div>
+    <div class="history-list" id="history-list">
+      <div class="history-empty">Aucun coup joué</div>
+    </div>
+  </div>
+
+  <!-- ══ MODAL FIN DE MANCHE ═══════════════════════════════════ -->
+  <div id="modal-round" class="hidden">
+    <div class="round-overlay"></div>
+    <div class="round-box">
+      <div class="round-icon"  id="round-icon">🏅</div>
+      <h2 class="round-title"  id="round-title">Manche terminée</h2>
+      <p  class="round-desc"   id="round-desc"></p>
+      <div class="round-match-score">
+        <div class="round-score-item"><span id="rl-north">IA</span>  <strong id="round-wins-north">0</strong></div>
+        <div class="round-score-item"><span id="rl-south">Vous</span><strong id="round-wins-south">0</strong></div>
+      </div>
+      <div class="round-stars" id="round-stars"></div>
+      <button class="btn-next-round" id="btn-next-round" onclick="nextRound()">▶ Manche suivante</button>
+    </div>
+  </div>
+
+  <!-- ══ MODAL FIN DE MATCH ════════════════════════════════════ -->
+  <div id="modal-endgame" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-box">
+      <div class="modal-icon"  id="modal-icon">🏆</div>
+      <h2 class="modal-title"  id="modal-title">Match terminé</h2>
+      <p  class="modal-desc"   id="modal-desc"></p>
+      <div class="modal-scores">
+        <div class="modal-score-item"><span id="modal-label-north">IA</span>  <strong id="modal-score-north">0</strong></div>
+        <div class="modal-score-item"><span id="modal-label-south">Vous</span><strong id="modal-score-south">0</strong></div>
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-play-again" onclick="replayMatch()">🔄 Rejouer</button>
+        <button class="btn-menu" onclick="window.location.href='index.html'">🏠 Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+  <script>
+    // Niveau depuis URL (ex: game.html?level=hard)
+    const _params = new URLSearchParams(window.location.search);
+    if (_params.get('level')) aiLevel = _params.get('level');
+
+    function selCfgLevel(lvl, btn) {
+      aiLevel = lvl;
+      btn.closest('.config-options').querySelectorAll('.config-btn')
+         .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // Pied de page
+    window.addEventListener('DOMContentLoaded', () => {
+      const f = document.createElement('footer');
+      f.id = 'songo-footer';
+      f.innerHTML = `<div class="footer-inner">
+        <span class="footer-sep">◈</span>
+        <span class="footer-text">Tsombeng Geraldis Leclerc &nbsp;·&nbsp; Matricule 23U2976 &nbsp;·&nbsp; Université de Yaoundé 1</span>
+        <span class="footer-sep">◈</span>
+      </div>`;
+      document.body.appendChild(f);
+    });
+  </script>
+</body>
+</html>

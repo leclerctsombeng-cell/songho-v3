@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Songo – Règles du jeu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    body { background: var(--bg-deep); }
+
+    /* ── Layout ───────────────────────────────────────── */
+    .rules-page {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .rules-top {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 2.5rem; flex-wrap: wrap;
+    }
+    .btn-back-rules {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--accent-gold); border-radius: var(--radius-sm);
+      padding: .45rem .9rem; font-size: .85rem; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: var(--transition);
+    }
+    .btn-back-rules:hover { background: rgba(201,150,62,.1); }
+
+    .rules-main-title {
+      font-family: 'Cinzel', serif; font-size: 2rem;
+      color: var(--accent-light); flex: 1;
+    }
+
+    /* ── Tabs ─────────────────────────────────────────── */
+    .rules-tabs {
+      display: flex; gap: .5rem; margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border); flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      color: var(--text-muted); font-size: .9rem; padding: .6rem 1rem;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: var(--transition); margin-bottom: -1px;
+    }
+    .tab-btn:hover  { color: var(--accent-gold); }
+    .tab-btn.active { color: var(--accent-gold); border-bottom-color: var(--accent-gold); font-weight: 600; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Rule blocks ──────────────────────────────────── */
+    .rule-section {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
+    }
+    .rule-section h3 {
+      font-family: 'Cinzel', serif; font-size: 1.05rem;
+      color: var(--accent-gold); margin-bottom: .75rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .rule-section p, .rule-section li {
+      font-size: .875rem; color: var(--text-muted); line-height: 1.8;
+    }
+    .rule-section ul { padding-left: 1.25rem; }
+    .rule-section li { margin-bottom: .3rem; }
+    .rule-section strong { color: var(--text-primary); }
+    .rule-highlight {
+      background: rgba(201,150,62,.1); border: 1px solid rgba(201,150,62,.25);
+      border-radius: var(--radius-sm); padding: .75rem 1rem;
+      font-size: .85rem; color: var(--accent-light); margin-top: .75rem;
+    }
+
+    /* ── Mini-plateau interactif ──────────────────────── */
+    .demo-wrapper {
+      background: var(--bg-dark); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
+    }
+    .demo-title {
+      font-family: 'Cinzel', serif; font-size: 1rem;
+      color: var(--accent-light); margin-bottom: 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .demo-desc {
+      font-size: .82rem; color: var(--text-muted);
+      margin-bottom: 1rem; line-height: 1.6;
+    }
+    .demo-board {
+      display: flex; flex-direction: column; gap: .5rem;
+      background: linear-gradient(180deg, var(--board-wood) 0%, var(--board-wood2) 100%);
+      border-radius: 16px; border: 2px solid rgba(201,150,62,.35);
+      padding: .75rem 1rem; max-width: 500px; margin: 0 auto 1rem;
+    }
+    .demo-row { display: flex; gap: .4rem; justify-content: center; }
+    .demo-cell {
+      width: 54px; height: 54px; border-radius: 50%;
+      background: radial-gradient(ellipse at 40% 30%, #3d2a12 0%, #221508 100%);
+      border: 2px solid rgba(201,150,62,.2);
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; position: relative;
+      font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700;
+      color: var(--accent-light); cursor: default;
+      transition: all .25s ease;
+    }
+    .demo-cell .cnum {
+      position: absolute; bottom: 3px; font-size: .5rem;
+      color: rgba(201,150,62,.4); font-family: 'Inter', sans-serif;
+    }
+    .demo-cell.clickable { cursor: pointer; }
+    .demo-cell.clickable:hover {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 16px rgba(201,150,62,.5);
+      transform: translateY(-2px) scale(1.05);
+    }
+    .demo-cell.highlight-src {
+      border-color: var(--accent-gold);
+      background: radial-gradient(ellipse at 40% 30%, #4d3620 0%, #2a1c08 100%);
+      box-shadow: 0 0 20px rgba(201,150,62,.6);
+    }
+    .demo-cell.highlight-dst {
+      border-color: var(--accent-green);
+      background: radial-gradient(ellipse at 40% 30%, #1a3d28 0%, #0a2014 100%);
+      box-shadow: 0 0 14px rgba(62,207,142,.5);
+      animation: demoLand .35s ease;
+    }
+    .demo-cell.highlight-cap {
+      border-color: #e8b45a;
+      background: radial-gradient(ellipse at 40% 30%, #3d2a08 0%, #1e1204 100%);
+      box-shadow: 0 0 18px rgba(232,180,90,.6);
+    }
+    @keyframes demoLand {
+      0%   { transform: scale(1.15); }
+      60%  { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+    .demo-divider {
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .demo-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(201,150,62,.4), transparent); }
+    .demo-divider-icon { color: var(--accent-gold); opacity: .5; font-size: .8rem; }
+
+    .demo-labels {
+      display: flex; justify-content: space-between;
+      font-size: .7rem; color: var(--text-dim); margin-bottom: .35rem; padding: 0 .5rem;
+    }
+    .demo-label-n { color: var(--accent-blue);  font-weight: 600; }
+    .demo-label-s { color: var(--accent-gold);  font-weight: 600; }
+
+    .demo-status {
+      text-align: center; font-size: .82rem; color: var(--text-muted);
+      min-height: 1.5rem; padding: .25rem;
+    }
+    .demo-status .ok  { color: var(--accent-green); }
+    .demo-status .bad { color: var(--accent-red); }
+
+    .demo-controls {
+      display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap;
+      margin-top: .75rem;
+    }
+    .btn-demo {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: var(--radius-sm);
+      padding: .4rem .9rem; font-size: .8rem; cursor: pointer;
+      font-family: 'Inter', sans-serif; transition: var(--transition);
+    }
+    .btn-demo:hover, .btn-demo.active-demo {
+      border-color: var(--accent-gold); color: var(--accent-gold);
+    }
+    .btn-demo-play {
+      background: var(--accent-gold); color: var(--bg-deep);
+      border: none; border-radius: var(--radius-sm);
+      padding: .5rem 1.2rem; font-size: .85rem; font-weight: 700;
+      cursor: pointer; font-family: 'Cinzel', sans-serif;
+      transition: var(--transition);
+    }
+    .btn-demo-play:hover { background: var(--accent-light); }
+
+    /* ── FAQ ──────────────────────────────────────────── */
+    .faq-item {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      margin-bottom: .5rem; overflow: hidden;
+    }
+    .faq-question {
+      width: 100%; background: var(--bg-card); border: none;
+      color: var(--text-primary); font-size: .875rem;
+      padding: 1rem 1.25rem; text-align: left; cursor: pointer;
+      font-family: 'Inter', sans-serif; display: flex;
+      justify-content: space-between; align-items: center;
+      transition: var(--transition);
+    }
+    .faq-question:hover { color: var(--accent-gold); }
+    .faq-question .arrow { transition: transform .25s; font-size: .75rem; }
+    .faq-item.open .faq-question .arrow { transform: rotate(180deg); }
+    .faq-answer {
+      max-height: 0; overflow: hidden;
+      transition: max-height .35s ease, padding .25s;
+      background: var(--bg-dark);
+      font-size: .85rem; color: var(--text-muted); line-height: 1.7;
+      padding: 0 1.25rem;
+    }
+    .faq-item.open .faq-answer { max-height: 400px; padding: 1rem 1.25rem; }
+  </style>
+</head>
+<body>
+<div class="rules-page">
+
+  <!-- En-tête -->
+  <div class="rules-top">
+    <button class="btn-back-rules" onclick="window.location.href='index.html'">← Retour</button>
+    <h1 class="rules-main-title">📖 Règles du Songo</h1>
+  </div>
+
+  <!-- Onglets -->
+  <div class="rules-tabs">
+    <button class="tab-btn active" onclick="showTab('tab-intro',this)">Introduction</button>
+    <button class="tab-btn"        onclick="showTab('tab-semis',this)">Le Semis</button>
+    <button class="tab-btn"        onclick="showTab('tab-captures',this)">Captures</button>
+    <button class="tab-btn"        onclick="showTab('tab-speciales',this)">Règles spéciales</button>
+    <button class="tab-btn"        onclick="showTab('tab-demo',this)">🎮 Démonstration</button>
+    <button class="tab-btn"        onclick="showTab('tab-faq',this)">FAQ</button>
+  </div>
+
+  <!-- ═══ INTRODUCTION ═══════════════════════════════════════ -->
+  <div id="tab-intro" class="tab-panel active">
+    <div class="rule-section">
+      <h3>🌍 Origine</h3>
+      <p>Le <strong>Songo</strong> est un jeu de semailles traditionnel pratiqué par les peuples <strong>Ekang</strong> (Beti, Fang, Bulu, Ewondo) du Cameroun, du Gabon et de la Guinée Équatoriale. Appartenant à la famille des jeux de <em>mancala</em>, il se joue depuis des générations et est inscrit dans le patrimoine culturel de l'Afrique centrale.</p>
+    </div>
+    <div class="rule-section">
+      <h3>🎯 Objectif</h3>
+      <p>Capturer <strong>40 graines ou plus</strong> (sur 70 au total). Le joueur qui atteint ce seuil en premier remporte la partie. Si les graines restantes sont insuffisantes pour continuer, elles sont redistribuées et le joueur avec le plus de graines gagne.</p>
+    </div>
+    <div class="rule-section">
+      <h3>⚙️ Matériel</h3>
+      <ul>
+        <li>Un plateau de <strong>14 cases</strong> disposées en 2 rangées de 7</li>
+        <li><strong>70 graines</strong> (5 par case au départ)</li>
+        <li>2 joueurs : <strong>NORD</strong> et <strong>SUD</strong></li>
+      </ul>
+      <div class="rule-highlight">
+        💡 La rangée NORD appartient au joueur NORD (cases 1 à 7 de gauche à droite).<br>
+        La rangée SUD appartient au joueur SUD (cases 1 à 7 de droite à gauche).
+      </div>
+    </div>
+    <div class="rule-section">
+      <h3>🔄 Tour de jeu</h3>
+      <p><strong>SUD commence</strong> la partie. Les joueurs alternent ensuite. À chaque tour, un joueur prend toutes les graines d'une de ses cases et les distribue une par une dans les cases suivantes (semis).</p>
+    </div>
+  </div>
+
+  <!-- ═══ SEMIS ═══════════════════════════════════════════════ -->
+  <div id="tab-semis" class="tab-panel">
+    <div class="rule-section">
+      <h3>↩️ Direction du semis</h3>
+      <p>Le semis suit un sens précis, <strong>toujours le même</strong> quel que soit le joueur :</p>
+      <ul>
+        <li>Dans <strong>sa propre rangée</strong> : de droite vers gauche (case 7 → case 1)</li>
+        <li>Dans <strong>la rangée adverse</strong> : de gauche vers droite (case 1 → case 7)</li>
+      </ul>
+      <div class="rule-highlight">
+        Exemple pour SUD : il prend les graines de sa case 5 et les distribue dans l'ordre : case 4, case 3, case 2, case 1 (SUD), puis case 1, case 2, case 3… (NORD).
+      </div>
+    </div>
+    <div class="rule-section">
+      <h3>🔁 Tour complet</h3>
+      <p>Si le joueur a <strong>14 graines ou plus</strong> dans une case, le semis fait le tour complet du plateau. La case de départ est <strong>sautée</strong> lors du passage.</p>
+    </div>
+    <div class="rule-section">
+      <h3>🚫 Case de départ</h3>
+      <p>On ne peut jouer que depuis une case <strong>non vide</strong> de sa rangée. On ne peut pas jouer depuis une case adverse.</p>
+    </div>
+  </div>
+
+  <!-- ═══ CAPTURES ════════════════════════════════════════════ -->
+  <div id="tab-captures" class="tab-panel">
+    <div class="rule-section">
+      <h3>🟢 Condition de capture</h3>
+      <p>Après le semis, si la <strong>dernière graine</strong> tombe dans une case adverse qui contient alors <strong>2, 3 ou 4 graines</strong> (total après semis inclus), ces graines sont capturées.</p>
+      <div class="rule-highlight">
+        ⚠️ La case 1 adverse est <strong>protégée</strong> : on ne peut pas y capturer directement (sauf tour complet ≥ 14 graines → 1 seule graine prise).
+      </div>
+    </div>
+    <div class="rule-section">
+      <h3>⛓️ Captures en chaîne</h3>
+      <p>Si la case précédant la dernière case capturée contient également 2, 3 ou 4 graines, elle est aussi capturée. La chaîne remonte vers la case 1 adverse tant que la condition est remplie.</p>
+      <ul>
+        <li>La chaîne <strong>s'arrête</strong> dès qu'une case contient 1, 0, ou 5+ graines</li>
+        <li>La chaîne <strong>s'arrête</strong> avant la case 1 adverse</li>
+        <li>La chaîne <strong>s'arrête</strong> si capter viderait complètement le camp adverse</li>
+      </ul>
+    </div>
+    <div class="rule-section">
+      <h3>🚫 Interdiction de vider le camp</h3>
+      <p>Une capture ne peut pas <strong>vider entièrement</strong> le camp adverse. Si capturer une case rendrait le camp adverse vide, cette case n'est pas capturée (et la chaîne s'arrête).</p>
+    </div>
+  </div>
+
+  <!-- ═══ RÈGLES SPÉCIALES ════════════════════════════════════ -->
+  <div id="tab-speciales" class="tab-panel">
+    <div class="rule-section">
+      <h3>7️⃣ Règle de la Case 7</h3>
+      <p>Si un joueur joue depuis sa <strong>case 7</strong> avec seulement <strong>1 ou 2 graines</strong>, et que ces graines tombent dans le camp adverse, elles vont directement au score adverse (comme si l'adversaire les avait capturées). <strong>Aucune prise n'est possible</strong> dans ce cas.</p>
+      <div class="rule-highlight">
+        Cette règle empêche les coups trop courts depuis la case la plus proche du camp adverse.
+      </div>
+    </div>
+    <div class="rule-section">
+      <h3>🤝 Règle de Solidarité</h3>
+      <p>Si le camp adverse est <strong>entièrement vide</strong>, le joueur actif <strong>doit</strong> choisir un coup qui envoie des graines dans le camp adverse :</p>
+      <ul>
+        <li>Si un coup peut envoyer <strong>≥ 7 graines</strong> en face, il faut jouer un tel coup</li>
+        <li>Si aucun coup ne peut envoyer 7 graines, il faut jouer le coup qui en envoie <strong>le plus possible</strong></li>
+        <li>Si aucun coup ne peut alimenter le camp adverse du tout, la partie s'arrête</li>
+      </ul>
+    </div>
+    <div class="rule-section">
+      <h3>🏁 Conditions de fin de partie</h3>
+      <ul>
+        <li>Un joueur atteint <strong>40 graines ou plus</strong> → victoire immédiate</li>
+        <li>Moins de <strong>10 graines</strong> sur le plateau → chaque joueur récupère ses graines restantes</li>
+        <li>Le joueur actif n'a <strong>aucun coup valide</strong> → chaque joueur récupère ses graines</li>
+      </ul>
+      <div class="rule-highlight">
+        Une égalité est possible si les deux joueurs finissent avec 35 graines chacun.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DÉMONSTRATION INTERACTIVE ══════════════════════════ -->
+  <div id="tab-demo" class="tab-panel">
+
+    <!-- Démo 1 : Semis simple -->
+    <div class="demo-wrapper">
+      <div class="demo-title">🎮 Démo 1 — Semis simple</div>
+      <div class="demo-desc">
+        Cliquez sur une case de SUD (rangée du bas) pour voir le semis animé. Les cases vertes reçoivent une graine.
+      </div>
+      <div class="demo-labels">
+        <span class="demo-label-n">← NORD (case 1 à 7)</span>
+        <span class="demo-label-s">SUD (case 7 à 1) →</span>
+      </div>
+      <div class="demo-board" id="demo1-board">
+        <div class="demo-row" id="demo1-north"></div>
+        <div class="demo-divider">
+          <div class="demo-divider-line"></div>
+          <div class="demo-divider-icon">◈</div>
+          <div class="demo-divider-line"></div>
+        </div>
+        <div class="demo-row" id="demo1-south"></div>
+      </div>
+      <div class="demo-status" id="demo1-status">Cliquez sur une case SUD pour lancer le semis</div>
+      <div class="demo-controls">
+        <button class="btn-demo" onclick="resetDemo1()">↺ Réinitialiser</button>
+      </div>
+    </div>
+
+    <!-- Démo 2 : Capture -->
+    <div class="demo-wrapper">
+      <div class="demo-title">🟢 Démo 2 — Capture en chaîne</div>
+      <div class="demo-desc">
+        Situation préconfigurée : SUD joue la case mise en évidence. Regardez la capture en chaîne se produire.
+      </div>
+      <div class="demo-board" id="demo2-board">
+        <div class="demo-row" id="demo2-north"></div>
+        <div class="demo-divider">
+          <div class="demo-divider-line"></div>
+          <div class="demo-divider-icon">◈</div>
+          <div class="demo-divider-line"></div>
+        </div>
+        <div class="demo-row" id="demo2-south"></div>
+      </div>
+      <div class="demo-status" id="demo2-status">Appuyez sur Jouer pour voir la capture</div>
+      <div class="demo-controls">
+        <button class="btn-demo-play" onclick="playDemo2()">▶ Jouer le coup</button>
+        <button class="btn-demo" onclick="resetDemo2()">↺ Réinitialiser</button>
+      </div>
+    </div>
+
+  </div><!-- fin tab-demo -->
+
+  <!-- ═══ FAQ ══════════════════════════════════════════════════ -->
+  <div id="tab-faq" class="tab-panel">
+    <div id="faq-list"></div>
+  </div>
+
+</div><!-- fin rules-page -->
+
+<!-- Footer -->
+<footer id="songo-footer">
+  <div class="footer-inner">
+    <span class="footer-sep">◈</span>
+    <span class="footer-text">Tsombeng Geraldis Leclerc &nbsp;·&nbsp; Matricule 23U2976 &nbsp;·&nbsp; Université de Yaoundé 1</span>
+    <span class="footer-sep">◈</span>
+  </div>
+</footer>
+
+<script>
+// ── Onglets ───────────────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── FAQ data ──────────────────────────────────────────────────
+const FAQ = [
+  { q: "Peut-on capturer depuis sa propre rangée ?",
+    a: "Non. Les captures ne se font que dans le camp adverse. Une graine tombant dans sa propre rangée ne déclenche aucune prise." },
+  { q: "Que se passe-t-il si ma case 7 a exactement 2 graines ?",
+    a: "Si vous jouez depuis votre case 7 avec 1 ou 2 graines et qu'elles atterrissent dans le camp adverse, ces graines vont directement au score de votre adversaire. Vous perdez ces graines sans possibilité de capture." },
+  { q: "La chaîne de capture peut-elle traverser la case 1 adverse ?",
+    a: "Non. La chaîne s'arrête avant d'atteindre la case 1 adverse. Cette case est protégée (sauf lors d'un tour complet avec ≥ 14 graines, qui permet de prendre 1 graine en case 1)." },
+  { q: "Que faire si mon adversaire n'a plus de graines ?",
+    a: "Vous devez jouer le coup qui envoie le maximum de graines dans son camp. Si vous pouvez en envoyer 7 ou plus, vous devez le faire. Sinon, envoyez-en le plus possible. Si aucun coup ne peut alimenter le camp adverse, la partie se termine." },
+  { q: "Le plateau peut-il se retrouver complètement vide ?",
+    a: "Oui, mais uniquement dans les conditions de fin : si le total des graines sur le plateau tombe sous 10, elles sont redistribuées aux propriétaires des cases, et le joueur avec le plus de graines gagne." },
+  { q: "Peut-on avoir une égalité ?",
+    a: "Oui. Si les deux joueurs finissent avec exactement 35 graines chacun, la partie est nulle. Cela reste rare mais possible." },
+  { q: "Comment se compte le score lors d'un tour complet ?",
+    a: "Lors d'un tour complet (≥ 14 graines dans une case), la case de départ est sautée lors du passage. Si la dernière graine atterrit exactement sur la case 1 adverse, 1 graine y est capturée." },
+  { q: "Quelle est la différence entre Facile, Moyen et Difficile ?",
+    a: "En mode Facile, l'IA joue aléatoirement parmi les coups valides. En Moyen, elle utilise un algorithme minimax avec 1 coup d'avance. En Difficile, elle explore 3 coups en avance avec élagage alpha-bêta." },
+];
+
+(function buildFaq() {
+  const list = document.getElementById('faq-list');
+  FAQ.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'faq-item';
+    div.innerHTML = `
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span>${item.q}</span>
+        <span class="arrow">▼</span>
+      </button>
+      <div class="faq-answer">${item.a}</div>
+    `;
+    list.appendChild(div);
+  });
+})();
+
+function toggleFaq(btn) {
+  btn.parentElement.classList.toggle('open');
+}
+
+// ── Démo 1 : Semis simple ─────────────────────────────────────
+// Plateau : indices 0-6 = NORD, 7-13 = SUD
+let d1Board = new Array(14).fill(5);
+
+function buildDemoBoard(prefix, boardArr, clickableSud) {
+  const rn = document.getElementById(`${prefix}-north`);
+  const rs = document.getElementById(`${prefix}-south`);
+  rn.innerHTML = ''; rs.innerHTML = '';
+
+  // NORD : indices 0-6
+  for (let i = 0; i < 7; i++) {
+    const cell = makeDemo(boardArr, i, 0, null);
+    rn.appendChild(cell);
+  }
+  // SUD : indices 7-13 (affiché 7→13 = case7→case1)
+  for (let i = 7; i < 14; i++) {
+    const cell = makeDemo(boardArr, i, 1, clickableSud ? i : null);
+    rs.appendChild(cell);
+  }
+}
+
+function makeDemo(boardArr, idx, player, clickIdx) {
+  const div = document.createElement('div');
+  div.className = 'demo-cell';
+  div.id = `demo-cell-${idx}`;
+  div.textContent = boardArr[idx];
+  const cnum = document.createElement('span');
+  cnum.className = 'cnum';
+  cnum.textContent = player === 0 ? idx + 1 : 14 - idx;
+  div.appendChild(cnum);
+  if (clickIdx !== null && boardArr[idx] > 0) {
+    div.classList.add('clickable');
+    div.addEventListener('click', () => runDemo1(clickIdx));
+  }
+  return div;
+}
+
+function resetDemo1() {
+  d1Board = new Array(14).fill(5);
+  buildDemoBoard('demo1', d1Board, true);
+  document.getElementById('demo1-status').innerHTML = 'Cliquez sur une case SUD pour lancer le semis';
+}
+
+async function runDemo1(cellIdx) {
+  if (!d1Board[cellIdx]) return;
+  const seeds = d1Board[cellIdx];
+  d1Board[cellIdx] = 0;
+
+  // Calculer l'ordre de semis pour SUD (player=1)
+  const sequence = [7,8,9,10,11,12,13, 6,5,4,3,2,1,0];
+  const startIdx = sequence.indexOf(cellIdx);
+  const order = [];
+  for (let i = 1; i <= seeds; i++) {
+    let idx2 = (startIdx + i) % sequence.length;
+    if (sequence[idx2] === cellIdx) { i++; idx2 = (startIdx + i) % sequence.length; }
+    order.push(sequence[idx2]);
+  }
+
+  buildDemoBoard('demo1', d1Board, false);
+  highlightDemoCell(cellIdx, 'highlight-src');
+  document.getElementById('demo1-status').innerHTML =
+    `<span class="ok">Semis de ${seeds} graine${seeds>1?'s':''} depuis la case ${14-cellIdx}</span>`;
+
+  for (const target of order) {
+    await demoPause(220);
+    d1Board[target]++;
+    buildDemoBoard('demo1', d1Board, false);
+    highlightDemoCell(target, 'highlight-dst');
+  }
+
+  await demoPause(400);
+  document.getElementById('demo1-status').innerHTML =
+    `<span class="ok">✅ Semis terminé ! Cliquez à nouveau pour un autre coup.</span>`;
+  buildDemoBoard('demo1', d1Board, true);
+}
+
+function highlightDemoCell(idx, cls) {
+  const c = document.getElementById(`demo-cell-${idx}`);
+  if (!c) return;
+  c.classList.add(cls);
+  setTimeout(() => c.classList.remove(cls), 500);
+}
+
+// ── Démo 2 : Capture en chaîne ────────────────────────────────
+// Situation : NORD a 3 graines en case 5 (idx=4), 3 en case 4 (idx=3), 2 en case 3 (idx=2)
+// SUD joue case 3 (idx=11) qui a 4 graines → atterrit en case 5 NORD → capture chaîne
+let d2Board;
+let d2Running = false;
+
+function resetDemo2() {
+  d2Board = new Array(14).fill(0);
+  // NORD : case 3 = idx2, case 4 = idx3, case 5 = idx4
+  d2Board[2] = 2; d2Board[3] = 3; d2Board[4] = 3;
+  d2Board[0] = 2; d2Board[1] = 1; d2Board[5] = 1; d2Board[6] = 1;
+  // SUD : case 3 = idx11 (4 graines = coup à jouer)
+  d2Board[11] = 4;
+  d2Board[7]  = 2; d2Board[8] = 3; d2Board[9] = 2; d2Board[10] = 1;
+  d2Board[12] = 2; d2Board[13] = 1;
+  d2Running = false;
+  buildDemoBoard('demo2', d2Board, false);
+  // Mettre en évidence la case à jouer
+  setTimeout(() => highlightDemoCell(11, 'highlight-src'), 100);
+  document.getElementById('demo2-status').innerHTML =
+    'SUD va jouer la case 3 (4 graines) → capture en chaîne possible';
+}
+
+async function playDemo2() {
+  if (d2Running) return;
+  d2Running = true;
+
+  const cellIdx = 11; // SUD case 3
+  const seeds   = d2Board[cellIdx];
+  d2Board[cellIdx] = 0;
+
+  // Ordre de semis SUD depuis idx=11
+  const sequence = [7,8,9,10,11,12,13, 6,5,4,3,2,1,0];
+  const startIdx = sequence.indexOf(cellIdx);
+  const order = [];
+  for (let i = 1; i <= seeds; i++) {
+    let idx2 = (startIdx + i) % sequence.length;
+    if (sequence[idx2] === cellIdx) { i++; idx2 = (startIdx + i) % sequence.length; }
+    order.push(sequence[idx2]);
+  }
+
+  buildDemoBoard('demo2', d2Board, false);
+  document.getElementById('demo2-status').innerHTML =
+    `<span class="ok">Semis de ${seeds} graines…</span>`;
+
+  // Animer le semis
+  for (const t of order) {
+    await demoPause(230);
+    d2Board[t]++;
+    buildDemoBoard('demo2', d2Board, false);
+    highlightDemoCell(t, 'highlight-dst');
+  }
+
+  await demoPause(500);
+
+  // Capture : dernière case = ordre[seeds-1]
+  const lastCell = order[order.length - 1]; // devrait être idx=4 (NORD case 5)
+  const nordRow  = [0,1,2,3,4,5,6];
+  let captured   = [];
+
+  if (nordRow.includes(lastCell) && lastCell !== 0) {
+    let cur = lastCell;
+    const oppRow = nordRow;
+    while (oppRow.includes(cur) && cur !== 0 && d2Board[cur] >= 2 && d2Board[cur] <= 4) {
+      const wouldEmpty = oppRow.every(i => i === cur ? true : d2Board[i] === 0);
+      if (wouldEmpty) break;
+      captured.push(cur);
+      d2Board[cur] = 0;
+      buildDemoBoard('demo2', d2Board, false);
+      highlightDemoCell(cur, 'highlight-cap');
+      await demoPause(450);
+      const pos = oppRow.indexOf(cur);
+      if (pos <= 0) break;
+      cur = oppRow[pos - 1];
+    }
+  }
+
+  document.getElementById('demo2-status').innerHTML =
+    captured.length > 0
+      ? `<span class="ok">✅ ${captured.length} case(s) NORD capturée(s) en chaîne !</span>`
+      : `<span class="bad">Aucune capture cette fois.</span>`;
+
+  d2Running = false;
+}
+
+function demoPause(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Init ──────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  resetDemo1();
+  resetDemo2();
+});
+</script>
+</body>
+</html>
